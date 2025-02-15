@@ -10,4 +10,7 @@ OpenMonitor is an intelligent security system designed to detect and alert unaut
 - Access control management system
 - Historical event logging and reporting
 - Multi-zone monitoring capabilities
+## Interface Preview
+The dashboard provides real-time alerts and video feeds:
 
+![OpenMonitor Interface](utils\image.png)
