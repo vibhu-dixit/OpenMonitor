@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+from ssl import CHANNEL_BINDING_TYPES
+
 from dotenv import load_dotenv
 
 
@@ -45,8 +47,17 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'messages_logger',
+    'channels',
+    'inference_manager',
 ]
 
+ASGI_APPLICATION = 'messaging_alert_system.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -62,7 +73,7 @@ ROOT_URLCONF = 'messaging_alert_system.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ["messaging_alert_system/templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

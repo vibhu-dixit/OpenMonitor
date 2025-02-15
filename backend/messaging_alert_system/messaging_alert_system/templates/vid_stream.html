@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Stream</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .navbar {
+            background-color: #007bff;
+        }
+        .navbar .navbar-brand {
+            color: white;
+        }
+        .navbar .nav-link {
+            color: white;
+        }
+        .navbar .nav-link:hover {
+            color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <a class="navbar-brand" href="#">OpenMonitors</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">Home</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="camera_stream.html">Camera Stream <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="previous_issues.html">Previous Issues</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Support</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-5">
+        <h1 class="mb-4">Camera Stream</h1>
+        <input type="file" id="videoInput" accept="video/*">
+        <button onclick="startStreaming()" id="startStreamButton">Start Streaming</button>
+        <video id="videoPreview" controls style="display: none;"></video>
+        <canvas id="frameCanvas" style="display: none;"></canvas>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        let videoElement = document.getElementById('videoPreview');
+        let canvas = document.getElementById('frameCanvas');
+        let ctx = canvas.getContext('2d');
+        let ws;
+
+        document.getElementById('videoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            videoElement.src = URL.createObjectURL(file);
+            videoElement.style.display = 'block';
+        });
+
+        function startStreaming() {
+            // Ensure a video file is selected
+            if (!videoElement.src) {
+                alert('Please select a video file first.');
+                return;
+            }
+
+            // Start playing the video immediately
+            videoElement.play().catch(error => {
+                console.error('Error playing video:', error);
+            });
+
+            // Connect to WebSocket
+            ws = new WebSocket('ws://' + window.location.host + '/ws/video/');
+
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                setupVideoProcessing();
+            };
+
+            ws.onmessage = (event) => {
+                console.log('Server response:', JSON.parse(event.data).message);
+            };
+        }
+
+        function setupVideoProcessing() {
+            videoElement.addEventListener('loadedmetadata', () => {
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
+            });
+
+            videoElement.addEventListener('play', () => {
+                const targetFPS = 25;  // Adjust as needed
+                const interval = 1000 / targetFPS;
+
+                const processFrame = () => {
+                    if (videoElement.paused || videoElement.ended) return;
+
+                    ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob(blob => {
+                        if (ws.readyState === WebSocket.OPEN) {
+                            ws.send(blob);
+                        }
+                    }, 'image/jpeg', 0.85);
+
+                    setTimeout(processFrame, interval);
+                };
+
+                processFrame();
+            });
+        }
+    </script>
+</body>
+</html>

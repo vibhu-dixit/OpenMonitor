@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human Detection System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .navbar {
+            background-color: #007bff;
+        }
+        .navbar .navbar-brand {
+            color: white;
+        }
+        .navbar .nav-link {
+            color: white;
+        }
+        .navbar .nav-link:hover {
+            color: #f8f9fa;
+        }
+        .alert {
+            background-color: #e2e3e5;
+            border-color: #d6d8db;
+        }
+        .alert-heading {
+            color: #495057;
+        }
+        .alert p {
+            color: #495057;
+        }
+        .alert .btn {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <a class="navbar-brand" href="#">OpenMonitors</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="vid_stream.html">Camera Stream</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="previous_issues.html">Previous Issues</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Support</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-5">
+        <h1 class="mb-4">Security Monitoring Dashboard</h1>
+        <div class="alert alert-primary" role="alert">
+            <h4 class="alert-heading">Alert Details</h4>
+            <p><strong>Image:</strong> <img src='{{proof}}' alt="Detected Image" class="img-fluid" style="max-width: 300px;"></p>
+            <p><strong>Timestamp:</strong> <span id="timestamp">{{timestamp}}</span></p>
+            <p><strong>Location:</strong> <span id="coordinates">{{geo_coordinates}}</span></p>
+            <p><strong>Camera number:</strong> <span id="camera-number">{{camera_number}}</span></p>
+            <p>
+                <button class="btn btn-success" onclick="confirmUpdate('addressed')">Alert Addressed</button>
+                <button class="btn btn-info" onclick="confirmUpdate('working on it')">Alert being taken into consideration</button>
+            </p>
+            {% if alert_addressed %}
+                <p id="alert-status-message" style="display: none;"><strong>Alert Status:</strong> <span id="alert-status"></span></p>
+            {% elif alert_in_progress%}
+                <p id="alert-status-message"><strong>Alert Status:</strong> <span id="alert-status">Being Addressed</span></p>
+            {% else %}
+                <p id="alert-status-message"><strong>Alert Status:</strong> <span id="alert-status">Not Addressed</span></p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Alert Status Modal -->
+    <div class="modal fade" id="alertStatusModal" tabindex="-1" role="dialog" aria-labelledby="alertStatusModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="alertStatusModalLabel">Alert Status</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="modal-alert-status">Alert Status: Not Addressed</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">Confirm Update</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="modal-confirmation-message">Are you sure you want to update the alert status?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="updateAlertStatus()">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        let currentStatus;
+
+        function confirmUpdate(status) {
+            currentStatus = status;
+            $('#confirmationModal').modal('show');
+        }
+
+        function updateAlertStatus() {
+            // Update the alert status in the modal
+            document.getElementById('modal-alert-status').innerText = `Alert Status: ${currentStatus}`;
+            // Show the alert status modal
+            $('#alertStatusModal').modal('show');
+            // Hide the confirmation modal
+            $('#confirmationModal').modal('hide');
+            // Update the alert status on the page
+            document.getElementById('alert-status-message').style.display = 'block';
+            document.getElementById('alert-status').innerText = currentStatus;
+            // Move the alert to Previous Issues (this is a placeholder action)
+            moveAlertToPreviousIssues();
+        }
+
+        function moveAlertToPreviousIssues() {
+            // Placeholder function to move the alert to Previous Issues
+            console.log('Alert moved to Previous Issues');
+        }
+    </script>
+</body>
+</html>

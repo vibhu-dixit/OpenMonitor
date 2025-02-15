@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.shortcuts import render
 
 from .models import Message
 from datetime import datetime
@@ -36,7 +37,6 @@ def get_unaddressed_alerts(request):
         return Response(alerts.values(), status=status.HTTP_200_OK)
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
 def mark_alert_addressed(request, alert_id):
     if request.method == 'POST':
         alert = Message.objects.get(id=alert_id)
@@ -47,7 +47,7 @@ def mark_alert_addressed(request, alert_id):
         alert.alert_in_progress = False
         alert.alert_addressed = True
         alert.save()
-        return Response(data={"message": "Alert addressed!"}, status=status.HTTP_200_OK)
+        return Response(data={"message": "Alert addressed!"},)
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
@@ -72,7 +72,8 @@ def get_alert_by_id(request, alert_id):
             "alert_addressed": alert.alert_addressed,
             "alert_in_progress": alert.alert_in_progress,
             "confirmation": alert.confirmation.url if alert.confirmation else None,
+            "camera_number": alert.camera_number,
         }
-        return Response(data, status=status.HTTP_200_OK)
+        return render(request, 'show_alert.html', data)
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
