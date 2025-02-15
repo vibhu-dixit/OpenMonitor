@@ -13,4 +13,4 @@ OpenMonitor is an intelligent security system designed to detect and alert unaut
 ## Interface Preview
 The dashboard provides real-time alerts and video feeds:
 
-![OpenMonitor Interface](utils\image.png)
+![OpenMonitor Interface](utils/image.png)
