@@ -8,7 +8,7 @@ class Message(models.Model):
     proof = models.ImageField(upload_to='proofs/')
     confirmation = models.ImageField(upload_to='confirmations/', null=True, blank=True)
     alert_addressed = models.BooleanField(default=False)
-    alert_zone = models.IntegerField()
+    camera_number = models.IntegerField(default=1)
 
     def __str__(self):
         return f"{self.message} logged \n at {self.timestamp} \n at {self.geo_coordinates} \n"

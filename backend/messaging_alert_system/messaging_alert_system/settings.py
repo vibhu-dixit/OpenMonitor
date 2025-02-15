@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'messages_logger',
-    'zone_manager',
 ]
 
 MIDDLEWARE = [
